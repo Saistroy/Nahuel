@@ -1,0 +1,76 @@
+﻿@model DeliveryLocal.Models.Pedido
+
+@{
+    ViewData["Title"] = "Realizar Pedido";
+}
+
+<h2>Realizar Pedido</h2>
+
+@if (ViewBag.Mensaje != null)
+{
+    <div class="alert alert-success">@ViewBag.Mensaje</div>
+}
+
+<form method="post" asp-action="CrearPedido" onsubmit="return validarUbicacion();">
+    <div>
+        <label>Producto</label>
+        <input asp-for="Producto" required />
+    </div>
+    <div>
+        <label>Cliente</label>
+        <input asp-for="Cliente" required />
+    </div>
+    <div>
+        <label>Teléfono</label>
+        <input asp-for="Telefono" required />
+    </div>
+    <div>
+        <label>Dirección</label>
+        <input asp-for="Direccion" required />
+    </div>
+
+    <div>
+        <label>Ubicación en el mapa (haga clic para seleccionar):</label>
+        <div id="map" style="height: 400px;"></div>
+    </div>
+
+    <input type="hidden" asp-for="Latitud" id="Latitud" />
+    <input type="hidden" asp-for="Longitud" id="Longitud" />
+
+    <button type="submit">Enviar Pedido</button>
+</form>
+
+<!-- Leaflet CSS y JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    var map = L.map('map').setView([-26.7997, -60.0171], 13); // Machagai, Chaco
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    var marker;
+
+    function onMapClick(e) {
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        marker = L.marker(e.latlng).addTo(map);
+        document.getElementById('Latitud').value = e.latlng.lat;
+        document.getElementById('Longitud').value = e.latlng.lng;
+    }
+
+    map.on('click', onMapClick);
+
+    function validarUbicacion() {
+        var lat = document.getElementById('Latitud').value;
+        var lng = document.getElementById('Longitud').value;
+        if (!lat || !lng) {
+            alert("Por favor, seleccione la ubicación en el mapa haciendo clic.");
+            return false;
+        }
+        return true;
+    }
+</script>

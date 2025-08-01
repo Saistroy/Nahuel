@@ -1,0 +1,102 @@
+﻿@model List<DeliveryLocal.Models.Pedido>
+
+@{
+    ViewData["Title"] = "Panel de Pedidos";
+}
+
+<h2>Panel de Pedidos</h2>
+
+<a asp-action="Logout">Cerrar sesión</a>
+
+<form method="get" asp-action="Pedidos" class="mb-3">
+    <label>Filtrar por estado:</label>
+    <select name="filtroEstado" onchange="this.form.submit()">
+        <option value="">-- Todos --</option>
+        <option value="Pendiente" selected="@(ViewBag.FiltroEstado == "Pendiente")">Pendiente</option>
+        <option value="En camino" selected="@(ViewBag.FiltroEstado == "En camino")">En camino</option>
+        <option value="Entregado" selected="@(ViewBag.FiltroEstado == "Entregado")">Entregado</option>
+    </select>
+</form>
+
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Producto</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Ubicación</th>
+            <th>Actualizar Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pedido in Model)
+        {
+            var datosPedido = new
+            {
+                Lat = pedido.Latitud,
+                Lng = pedido.Longitud,
+                Producto = pedido.Producto,
+                Cliente = pedido.Cliente,
+                Estado = pedido.Estado
+            };
+
+            <tr>
+                <td>@pedido.Id</td>
+                <td>@pedido.Producto</td>
+                <td>@pedido.Cliente</td>
+                <td>@pedido.Direccion</td>
+                <td>@pedido.Estado</td>
+                <td>@pedido.Fecha.ToString("g")</td>
+                <td>
+                    <button type="button" onclick='centrarDesdeJson(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(datosPedido)))'>
+                        📍 Ver en mapa
+                    </button>
+                </td>
+                <td>
+                    <form method="post" asp-action="ActualizarEstado" onsubmit="return confirm('¿Estás seguro que querés actualizar el estado?');">
+                        <input type="hidden" name="id" value="@pedido.Id" />
+                        <select name="estado">
+                            <option value="Pendiente" selected="@("Pendiente" == pedido.Estado)">Pendiente</option>
+                            <option value="En camino" selected="@("En camino" == pedido.Estado)">En camino</option>
+                            <option value="Entregado" selected="@("Entregado" == pedido.Estado)">Entregado</option>
+                        </select>
+                        <button type="submit">Actualizar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Mapa de pedidos</h3>
+<div id="mapPedidos" style="height: 500px;"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    var map = L.map('mapPedidos').setView([-26.7997, -60.0171], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    @foreach (var pedido in Model)
+    {
+            <text>
+                L.marker([@pedido.Latitud, @pedido.Longitud])
+                    .addTo(map)
+                    .bindPopup("Pedido: @pedido.Producto<br>Cliente: @pedido.Cliente<br>Estado: @pedido.Estado");
+            </text>
+    }
+
+    function centrarDesdeJson(pedido) {
+        map.setView([pedido.Lat, pedido.Lng], 17);
+        var popup = L.popup()
+            .setLatLng([pedido.Lat, pedido.Lng])
+            .setContent("Pedido: " + pedido.Producto + "<br>Cliente: " + pedido.Cliente + "<br>Estado: " + pedido.Estado)
+            .openOn(map);
+    }
+</script>

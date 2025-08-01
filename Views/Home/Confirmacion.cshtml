@@ -1,0 +1,29 @@
+﻿@model DeliveryLocal.Models.Pedido
+
+@{
+    ViewData["Title"] = "Confirmación";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>¡Gracias por tu pedido!</h2>
+
+<p><strong>Producto:</strong> @Model.Producto</p>
+<p><strong>Cliente:</strong> @Model.Cliente</p>
+<p><strong>Dirección:</strong> @Model.Direccion</p>
+<p><strong>Fecha:</strong> @Model.Fecha.ToString("g")</p>
+<p><strong>Estado actual:</strong> <span style="color: green">@Model.Estado</span></p>
+
+@if (Model.Estado == "En camino")
+{
+    <p>Tu pedido ya está en camino 🚚</p>
+}
+else if (Model.Estado == "Pendiente")
+{
+    <p>Estamos preparando tu pedido, pronto estará en camino.</p>
+}
+else if (Model.Estado == "Entregado")
+{
+    <p>Tu pedido fue entregado. ¡Gracias por confiar en nosotros!</p>
+}
+
+<a asp-controller="Home" asp-action="Index">Hacer otro pedido</a>
